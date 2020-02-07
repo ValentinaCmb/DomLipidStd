@@ -1,6 +1,16 @@
+# Packages ----
+
+library("addinslist")
 library(tidyverse)
 library(readr)
+library(RColorBrewer)
+library(modelr)
+library(kableExtra)
+library(ggThemeAssist)
+
+# Get working drectory to confirm the right location
 getwd()
+
 
 # LS = Lipid Search Software i.e. table of lipids etc obtained from LipidSearch
 # CD =  Compund Discoverer
@@ -79,11 +89,11 @@ T01 <- LSdata01 %>%
       select(Name, LSFormula, RT, MainIon, `Calc Mass`, Class, FA, `FA Group Key`) %>% 
       filter(Class %in% c("DG", "FA", "PE", "LPC", "LPE", "LPI", "LPS", "PA", "PC", "PG", "PI", "PS", "TG"))
 
-#############################################################################################
-#
-#   START FROM HERE FOR STANDARDS ANALYSIS 
-#
-# ------------------------ 3rd part ------------------------------------------------- ######
+###################################################################
+#                                                                 #
+#  >>>>  START FROM HERE FOR STANDARDS ANALYSIS  <<<<             #
+#                                                                 #
+# ###------------------ 3rd part ----------------------- ##########
 
 # now that CD has run we want to plot this data and see what makes sense
 
@@ -110,7 +120,7 @@ CDdata_gathered <- CDdata %>%
          StandardsName =str_extract(sample, "\\d+"))
 
 ############# ??? THESE 2 BELOW ARE not NEEDED ################
-
+# This is needed if only a specific LipidClass needs to be analaysed
 PC <- CDdata_gathered %>% 
   filter(Class == "PC")
 
@@ -118,7 +128,7 @@ ggplot( aes(`RT [min]`, `Molecular Weight`, colour = DB)) +
   geom_point()
 
 ################################################
-#bA
+#
 # ______ THESE BELOW ARE NEEDED ______________ #
 
 p1 <- CDdata_gathered %>% 
@@ -127,9 +137,7 @@ p1 <- CDdata_gathered %>%
 ggplot(p1, aes(`StandardsName`, log(area), colour = Batch)) +
   #geom_boxplot()+
   geom_point() +
-  geom_point() +
-  facet_wrap(~Class, scales ="free_y")
-
+  facet_wrap(~Class, scales = "free_y")
 
 
 
@@ -155,6 +163,10 @@ p3 <-  p1 %>%
 
 p3
 
+# >>>>>>>>>>>>>>>>> <<<<<<<<<<<
+#             PLOTS 
+#|
+#|_______________________________
 # Log transform the data 
 
 ggplot(p3, aes(log(Conc), log(area), colour = Batch)) +
@@ -171,9 +183,22 @@ ggplot(p3, aes(log(Conc), log(area))) +
   geom_smooth( method = "lm")
 
 
-#  get the linear model thingy for slope and intercept for each Lipid class  
-# (when code becomes long copy and paste it again and it will format itself automatically)
-# "mod" is part of the liner model output but it isn't important for theis analysis so it gets removed with "select all but mod
+
+
+  ##%######################################################%
+#                                                          #
+####       FURTHER ANALYSIS  get the linear model       ####
+####      thingy for slope and intercept for each       ####
+####          Lipid class   (when code becomes          ####
+####          long copy and paste it again and          ####
+####   it will format itself automatically) "mod" is    ####
+####         part of the liner model output but         ####
+####      it isn't important for theis analysis so      ####
+####      it gets removed with "select all but mod      ####
+#                                                          #
+##%######################################################%##
+
+
 stdlm <- p3 %>% 
   group_by(Class) %>% 
   do(mod= lm(log(area) ~ log(Conc), data = .)) %>% 
@@ -185,9 +210,13 @@ stdlm <- p3 %>%
 
 
 # recall the summary of the LM for the equation
+
 summary(stdlm)
 
-# create a table with kable function as a figure. cannot be used for calculations! ____________
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#
+#    create a table with kable function as a figure. cannot be used for calculations! ____________
+#
 
 install.packages("kableExtra")
 library(kableExtra)
@@ -199,24 +228,46 @@ standards <- stdlm %>%
 
 standards
 
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> <<<<<<<<<<<<<<<<<<<<<<<<<
+#
 # ____ Calculate the Concentration of each compound __________
 
-# AREA USED IS "area" NOT "Area max" !
+# NOTE: AREA USED IS "area" NOT "Area max" !
+
+# this is the code I will have to use to get the concentrations of the lipids in the batches 
 
 sample.values <-  p3 %>% 
   left_join(stdlm) %>% 
-  mutate(conc_mgmL = exp((log(area) - intercept)/ slope)) %>% 
-  select( -slope, -intercept, -adj.r.squared)
+  mutate(conc_mgmL = exp((log(area) - intercept)/ slope))  
+ # select( -slope, -intercept, -adj.r.squared)
   
+
+# this is the concentrations table that need to be used for the batches
 
 sample.values  
 
-# ________ plot the samples based on the conc and not area anylonger ________
+# print the table so that it can be exported
+
+write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
+
+
+# ________ Plot of the samples based on the concentrations and no longer area  ________
 
 ggplot(sample.values, aes(log(conc_mgmL), log(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
-  geom_smooth( method = "lm")
+  geom_smooth( method = "lm") + 
+  theme(plot.subtitle = element_text(vjust = 1), 
+    plot.caption = element_text(vjust = 1), 
+    axis.line = element_line(colour = "brown2", 
+        size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+    panel.grid.minor = element_line(colour = "khaki2"), 
+    axis.title = element_text(size = 13), 
+    axis.text = element_text(size = 13, colour = "gray19"), 
+    plot.title = element_text(size = 14), 
+    panel.background = element_rect(fill = "aliceblue")) +
+    labs(x = "log conc in (mgmL)", y = "log of area") +
+    theme(panel.grid.minor = element_line(colour = "ivory2"))
 
 # make a table of all the standards _____
 
@@ -225,3 +276,24 @@ allStandards <- sample.values %>%
   kable_styling()
 
 allStandards
+
+############################
+##%######################################################%##
+#                                                          #
+####              Standards for Batch 01 =              ####
+####       B1; B1 contains all the concentrations       ####
+####        (for each standard) that could have         ####
+####                 been detected from                 ####
+####          the spectrum/chromatogram. Also,          ####
+####        remember that each standard was ran         ####
+####            twice in the LCNS during the            ####
+####            same Batch analysis ( at the            ####
+####            start and again at the end)             ####
+#                                                          #
+##%######################################################%##
+
+B1 <- sample.values %>% 
+  filter(Batch == "B1")
+
+write_csv(B1, path = "Data/Batch01Standards.csv")
+
