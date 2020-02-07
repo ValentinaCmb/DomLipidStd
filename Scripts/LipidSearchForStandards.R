@@ -406,7 +406,9 @@ ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
         plot.title = element_text(size = 14), 
         panel.background = element_rect(fill = "aliceblue")) +
   labs(x = "log conc in (mgmL)", y = "log of area") +
-  theme(panel.grid.minor = element_line(colour = "ivory2"))
+  theme(panel.grid.minor = element_line(colour = "ivory2")) + theme(panel.grid.major = element_line(colour = "gray53"), 
+    panel.grid.minor = element_line(colour = NA), 
+    panel.background = element_rect(fill = "antiquewhite"))
 
 # make a table of all the standards w kable function __
 
