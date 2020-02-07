@@ -89,11 +89,21 @@ T01 <- LSdata01 %>%
       select(Name, LSFormula, RT, MainIon, `Calc Mass`, Class, FA, `FA Group Key`) %>% 
       filter(Class %in% c("DG", "FA", "PE", "LPC", "LPE", "LPI", "LPS", "PA", "PC", "PG", "PI", "PS", "TG"))
 
-###################################################################
-#                                                                 #
-#  >>>>  START FROM HERE FOR STANDARDS ANALYSIS  <<<<             #
-#                                                                 #
-# ###------------------ 3rd part ----------------------- ##########
+############################################################
+#                                                             
+##%######################################################%##
+#                                                          #
+####       START FROM HERE FOR STANDARDS ANALYSIS         ##
+#                                                          #
+##%######################################################%##
+ 
+
+##%######################################################%##
+#                                                          #
+####                      3rd part                      ####
+#                                                          #
+##%######################################################%##
+ 
 
 # now that CD has run we want to plot this data and see what makes sense
 
@@ -108,6 +118,7 @@ key <- read_csv("Data/Standards_UpdatedTable_ComDisco.csv", col_types = cols(Nam
       rename(LSFormula= Formula)
 
 CDdata_gathered <- CDdata %>% 
+  #mutate(Name = gsub(`Oleic acid`, `FA(18:1)`, x = Name)) %>% 
   gather(sample, area, contains("Area: ")) %>%
   group_by(Name, Formula, `Molecular Weight`, `RT [min]`) %>%
   filter(!is.na(area),
@@ -117,19 +128,8 @@ CDdata_gathered <- CDdata %>%
   mutate(TC = word(`FA Group Key`, 1, 1, sep = "_"),
          DB = word(`FA Group Key`, -1, -1, sep = "_")) %>% 
   mutate(Batch = str_extract(sample, "[B]\\d+"),
-         StandardsName =str_extract(sample, "\\d+"))
-
-############# ??? THESE 2 BELOW ARE not NEEDED ################
-# This is needed if only a specific LipidClass needs to be analaysed
-PC <- CDdata_gathered %>% 
-  filter(Class == "PC")
-
-ggplot( aes(`RT [min]`, `Molecular Weight`, colour = DB)) +
-  geom_point()
-
-################################################
-#
-# ______ THESE BELOW ARE NEEDED ______________ #
+         StandardsName =str_extract(sample, "\\d+")) 
+  
 
 p1 <- CDdata_gathered %>% 
     group_by(Batch)
@@ -139,6 +139,16 @@ ggplot(p1, aes(`StandardsName`, log(area), colour = Batch)) +
   geom_point() +
   facet_wrap(~Class, scales = "free_y")
 
+
+
+############# THESE 2 BELOW ARE not NEEDED ################
+# This is needed if only a specific LipidClass needs to be analaysed
+PC <- CDdata_gathered %>% 
+  filter(Class == "PC")
+
+ggplot( aes(`RT [min]`, `Molecular Weight`, colour = DB)) +
+  geom_point()
+################################################
 
 
 # --------- Part 4: make calibration table etc out of standards curve ----------------------------------------------------------- #
@@ -159,14 +169,15 @@ p3 <-  p1 %>%
                      ifelse (StandardsName == "16", "50", "NA")))))))))) %>% 
   select(-Checked, -('Annotation Source: Predicted Compositions': 'FISh Coverage'), -(LSFormula : Mass))
 
-    
-
 p3
 
-# >>>>>>>>>>>>>>>>> <<<<<<<<<<<
-#             PLOTS 
-#|
-#|_______________________________
+
+##%######################################################%##
+#                                                          #
+####                       PLOTS                        ####
+#                                                          #
+##%######################################################%##
+
 # Log transform the data 
 
 ggplot(p3, aes(log(Conc), log(area), colour = Batch)) +
@@ -174,15 +185,12 @@ ggplot(p3, aes(log(Conc), log(area), colour = Batch)) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y")
 
-
 # Add the Linear Model (lm) and remove colour =  Batch to see 1 regression line only 
 
 ggplot(p3, aes(log(Conc), log(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm")
-
-
 
 
   ##%######################################################%
@@ -207,15 +215,13 @@ stdlm <- p3 %>%
                           adj.r.squared = summary(mod)$adj.r.squared) %>% 
   select(-mod)
 
-
-
 # recall the summary of the LM for the equation
 
 summary(stdlm)
 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 #
-#    create a table with kable function as a figure. cannot be used for calculations! ____________
+#  create a table with kable function as a figure. cannot be used for calculations! 
 #
 
 install.packages("kableExtra")
@@ -228,20 +234,17 @@ standards <- stdlm %>%
 
 standards
 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> <<<<<<<<<<<<<<<<<<<<<<<<<
-#
-# ____ Calculate the Concentration of each compound __________
+
+# __Calculate the Concentration of each compound __
 
 # NOTE: AREA USED IS "area" NOT "Area max" !
-
 # this is the code I will have to use to get the concentrations of the lipids in the batches 
 
 sample.values <-  p3 %>% 
   left_join(stdlm) %>% 
   mutate(conc_mgmL = exp((log(area) - intercept)/ slope))  
- # select( -slope, -intercept, -adj.r.squared)
-  
-
+ 
+# select( -slope, -intercept, -adj.r.squared)
 # this is the concentrations table that need to be used for the batches
 
 sample.values  
@@ -251,7 +254,7 @@ sample.values
 write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
 
 
-# ________ Plot of the samples based on the concentrations and no longer area  ________
+# __ Plot of the samples based on the concentrations and no longer on the area  ____
 
 ggplot(sample.values, aes(log(conc_mgmL), log(area))) +
   geom_point() +
@@ -269,7 +272,7 @@ ggplot(sample.values, aes(log(conc_mgmL), log(area))) +
     labs(x = "log conc in (mgmL)", y = "log of area") +
     theme(panel.grid.minor = element_line(colour = "ivory2"))
 
-# make a table of all the standards _____
+# make a table of all the standards w kable function __
 
 allStandards <- sample.values %>% 
   kable() %>% 
@@ -277,18 +280,16 @@ allStandards <- sample.values %>%
 
 allStandards
 
-############################
 ##%######################################################%##
 #                                                          #
-####              Standards for Batch 01 =              ####
-####       B1; B1 contains all the concentrations       ####
-####        (for each standard) that could have         ####
-####                 been detected from                 ####
-####          the spectrum/chromatogram. Also,          ####
-####        remember that each standard was ran         ####
-####            twice in the LCNS during the            ####
-####            same Batch analysis ( at the            ####
-####            start and again at the end)             ####
+####              Standards for Batch 01 = B1           ####
+####        B1 contains the concentrations  of standards   #
+####        that were measurable in the MS.             ####
+####                                                    ####
+####        Each standard was ran twice in the LCMS     ####
+####             during the same Batch analysis            #
+#           ( at the start and again at the end)         ###
+####                    
 #                                                          #
 ##%######################################################%##
 
