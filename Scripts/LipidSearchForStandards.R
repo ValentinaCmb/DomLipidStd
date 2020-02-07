@@ -169,7 +169,9 @@ p3 <-  p1 %>%
                      ifelse (StandardsName == "16", "50", "NA")))))))))) %>% 
   select(-Checked, -('Annotation Source: Predicted Compositions': 'FISh Coverage'), -(LSFormula : Mass))
 
-p3
+p3 <- p3 %>% 
+  mutate(log.conc = log10(Conc))
+  
 
 
 ##%######################################################%##
@@ -180,14 +182,13 @@ p3
 
 # Log transform the data 
 
-ggplot(p3, aes(log(Conc), log(area), colour = Batch)) +
-  geom_point() +
+ggplot(p3, aes(log10(Conc), log10(area), colour = Batch)) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y")
 
 # Add the Linear Model (lm) and remove colour =  Batch to see 1 regression line only 
 
-ggplot(p3, aes(log(Conc), log(area))) +
+ggplot(p3, aes(log10(Conc), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm")
@@ -206,10 +207,16 @@ ggplot(p3, aes(log(Conc), log(area))) +
 #                                                          #
 ##%######################################################%##
 
+# separate analysis based n standards batches i.e. standards in batch o1 from standards in batch 02 etc
 
-stdlm <- p3 %>% 
+p3 <- p3 %>% 
+  group_by(Batch)
+
+# Filter standards for Batch 01
+stdlm.b1 <- p3 %>%  
+  filter(Batch == "B1") %>% 
   group_by(Class) %>% 
-  do(mod= lm(log(area) ~ log(Conc), data = .)) %>% 
+  do(mod= lm(log10(area) ~ log10(Conc), data = .)) %>% 
   mutate(slope = summary(mod)$coeff[2],
          intercept = coef(mod)[1],
                           adj.r.squared = summary(mod)$adj.r.squared) %>% 
@@ -217,10 +224,50 @@ stdlm <- p3 %>%
 
 # recall the summary of the LM for the equation
 
-summary(stdlm)
+summary(stdlm.b1)
+
+# Filter standards for B2
+
+stdlm.b2 <- p3 %>%  
+  filter(Batch == "B2") %>% 
+  group_by(Class) %>% 
+  do(mod= lm(log10(area) ~ log10(Conc), data = .)) %>% 
+  mutate(slope = summary(mod)$coeff[2],
+         intercept = coef(mod)[1],
+         adj.r.squared = summary(mod)$adj.r.squared) %>% 
+  select(-mod)
+
+summary(stdlm.b2)
+
+# Filter standards for Batch 03
+
+stdlm.b3 <- p3 %>%  
+  filter(Batch == "B3") %>% 
+  group_by(Class) %>% 
+  do(mod= lm(log10(area) ~ log10(Conc), data = .)) %>% 
+  mutate(slope = summary(mod)$coeff[2],
+         intercept = coef(mod)[1],
+         adj.r.squared = summary(mod)$adj.r.squared) %>% 
+  select(-mod)
+
+summary(stdlm.b3)
 
 
-#
+# Filter staandards for Batch B 04
+
+stdlm.b4 <- p3 %>%  
+  filter(Batch == "B3") %>% 
+  group_by(Class) %>% 
+  do(mod= lm(log10(area) ~ log10(Conc), data = .)) %>% 
+  mutate(slope = summary(mod)$coeff[2],
+         intercept = coef(mod)[1],
+         adj.r.squared = summary(mod)$adj.r.squared) %>% 
+  select(-mod)
+
+summary(stdlm.b4)
+
+
+
 #  create a table with kable function as a figure. cannot be used for calculations! 
 #
 
@@ -240,23 +287,54 @@ standards
 # NOTE: AREA USED IS "area" NOT "Area max" !
 # this is the code I will have to use to get the concentrations of the lipids in the batches 
 
-sample.values <-  p3 %>% 
-  left_join(stdlm) %>% 
-  mutate(conc_mgmL = exp((log(area) - intercept)/ slope))  
+# Batch 01
+sample.values.b1 <-  p3 %>% 
+  filter(Batch =="B1") %>% 
+  left_join(stdlm.b1) %>% 
+  mutate(conc_mgmL = exp((log10(area) - intercept)/ slope))  
  
 # select( -slope, -intercept, -adj.r.squared)
 # this is the concentrations table that need to be used for the batches
 
-sample.values  
+sample.values.b1  
+
+# Batch 02
+
+sample.values.b2 <-  p3 %>% 
+  filter(Batch =="B2") %>% 
+left_join(stdlm.b2) %>% 
+  mutate(conc_mgmL = exp((log10(area) - intercept)/ slope))  
+
+sample.values.b2  
+
+# Batch 03
+
+sample.values.b3 <-  p3 %>% 
+  filter(Batch =="B3") %>% 
+left_join(stdlm.b3) %>% 
+  mutate(conc_mgmL = exp((log10(area) - intercept)/ slope))  
+
+sample.values.b3
+
+# batch 04
+
+sample.values.b4 <-  p3 %>% 
+  filter(Batch =="B4") %>% 
+  left_join(stdlm.b4) %>% 
+  mutate(conc_mgmL = exp((log10(area) - intercept)/ slope)) 
+
+sample.values.b4
+
 
 # print the table so that it can be exported
+# !!! TO DO: make this for each Batch
 
 write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
 
 
 # __ Plot of the samples based on the concentrations and no longer on the area  ____
-
-ggplot(sample.values, aes(log(conc_mgmL), log(area))) +
+# B1
+ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
@@ -271,6 +349,64 @@ ggplot(sample.values, aes(log(conc_mgmL), log(area))) +
     panel.background = element_rect(fill = "aliceblue")) +
     labs(x = "log conc in (mgmL)", y = "log of area") +
     theme(panel.grid.minor = element_line(colour = "ivory2"))
+
+
+# B2
+
+ggplot(sample.values.b2, aes(log10(conc_mgmL), log10(area))) +
+  geom_point() +
+  facet_wrap(~Class, scales ="free_y") +
+  geom_smooth( method = "lm") + 
+  theme(plot.subtitle = element_text(vjust = 1), 
+        plot.caption = element_text(vjust = 1), 
+        axis.line = element_line(colour = "brown2", 
+                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        panel.grid.minor = element_line(colour = "khaki2"), 
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 13, colour = "gray19"), 
+        plot.title = element_text(size = 14), 
+        panel.background = element_rect(fill = "aliceblue")) +
+  labs(x = "log conc in (mgmL)", y = "log of area") +
+  theme(panel.grid.minor = element_line(colour = "ivory2"))
+
+
+
+# B3
+
+
+ggplot(sample.values.b3, aes(log10(conc_mgmL), log10(area))) +
+  geom_point() +
+  facet_wrap(~Class, scales ="free_y") +
+  geom_smooth( method = "lm") + 
+  theme(plot.subtitle = element_text(vjust = 1), 
+        plot.caption = element_text(vjust = 1), 
+        axis.line = element_line(colour = "brown2", 
+                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        panel.grid.minor = element_line(colour = "khaki2"), 
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 13, colour = "gray19"), 
+        plot.title = element_text(size = 14), 
+        panel.background = element_rect(fill = "aliceblue")) +
+  labs(x = "log conc in (mgmL)", y = "log of area") +
+  theme(panel.grid.minor = element_line(colour = "ivory2"))
+
+# B4
+
+ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
+  geom_point() +
+  facet_wrap(~Class, scales ="free_y") +
+  geom_smooth( method = "lm") + 
+  theme(plot.subtitle = element_text(vjust = 1), 
+        plot.caption = element_text(vjust = 1), 
+        axis.line = element_line(colour = "brown2", 
+                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        panel.grid.minor = element_line(colour = "khaki2"), 
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 13, colour = "gray19"), 
+        plot.title = element_text(size = 14), 
+        panel.background = element_rect(fill = "aliceblue")) +
+  labs(x = "log conc in (mgmL)", y = "log of area") +
+  theme(panel.grid.minor = element_line(colour = "ivory2"))
 
 # make a table of all the standards w kable function __
 
