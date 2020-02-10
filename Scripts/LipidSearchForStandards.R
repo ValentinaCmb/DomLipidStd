@@ -1,5 +1,7 @@
 # Packages ----
-
+install.packages("ggThemeAssist")
+install.packages("tidyverse")
+update.packages(ask= FALSE)
 library("addinslist")
 library(tidyverse)
 library(readr)
@@ -334,21 +336,21 @@ write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
 
 # __ Plot of the samples based on the concentrations and no longer on the area  ____
 # B1
-ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area))) +
+B1 <- ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
   theme(plot.subtitle = element_text(vjust = 1), 
-    plot.caption = element_text(vjust = 1), 
-    axis.line = element_line(colour = "brown2", 
-        size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
-    panel.grid.minor = element_line(colour = "khaki2"), 
-    axis.title = element_text(size = 13), 
-    axis.text = element_text(size = 13, colour = "gray19"), 
-    plot.title = element_text(size = 14), 
-    panel.background = element_rect(fill = "aliceblue")) +
-    labs(x = "log conc in (mgmL)", y = "log of area") +
-    theme(panel.grid.minor = element_line(colour = "ivory2"))
+        plot.caption = element_text(vjust = 1), 
+        axis.line = element_line(colour = "gray26", 
+                                 size = 0.5), panel.grid.major = element_line(linetype = "dashed"), 
+        panel.grid.minor = element_line(colour = "khaki2"), 
+        axis.title = element_text(size = 13), 
+        axis.text = element_text(size = 13, colour = "gray19"), 
+        plot.title = element_text(size = 14), 
+        panel.background = element_rect(fill = "lemonchiffon")) +
+  labs(x = "log conc in (mgmL)", y = "log of area", title = "B1 - standards") +
+  theme(panel.grid.minor = element_line(colour = "ivory2"))
 
 
 # B2
@@ -359,17 +361,15 @@ ggplot(sample.values.b2, aes(log10(conc_mgmL), log10(area))) +
   geom_smooth( method = "lm") + 
   theme(plot.subtitle = element_text(vjust = 1), 
         plot.caption = element_text(vjust = 1), 
-        axis.line = element_line(colour = "brown2", 
-                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        axis.line = element_line(colour = "gray26", 
+          size = 0.5), panel.grid.major = element_line(linetype = "dashed"), 
         panel.grid.minor = element_line(colour = "khaki2"), 
         axis.title = element_text(size = 13), 
         axis.text = element_text(size = 13, colour = "gray19"), 
         plot.title = element_text(size = 14), 
-        panel.background = element_rect(fill = "aliceblue")) +
-  labs(x = "log conc in (mgmL)", y = "log of area") +
-  theme(panel.grid.minor = element_line(colour = "ivory2"))
-
-
+        panel.background = element_rect(fill = "lemonchiffon")) +
+  labs(x = "log conc in (mgmL)", y = "log of area", title = "B2 - standards") +
+  theme(panel.grid.minor = element_line(colour = "ivory2")) 
 
 # B3
 
@@ -380,16 +380,15 @@ ggplot(sample.values.b3, aes(log10(conc_mgmL), log10(area))) +
   geom_smooth( method = "lm") + 
   theme(plot.subtitle = element_text(vjust = 1), 
         plot.caption = element_text(vjust = 1), 
-        axis.line = element_line(colour = "brown2", 
-                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        axis.line = element_line(colour = "gray26", 
+                                 size = 0.5), panel.grid.major = element_line(linetype = "dashed"), 
         panel.grid.minor = element_line(colour = "khaki2"), 
         axis.title = element_text(size = 13), 
         axis.text = element_text(size = 13, colour = "gray19"), 
         plot.title = element_text(size = 14), 
-        panel.background = element_rect(fill = "aliceblue")) +
-  labs(x = "log conc in (mgmL)", y = "log of area") +
+        panel.background = element_rect(fill = "lemonchiffon")) +
+  labs(x = "log conc in (mgmL)", y = "log of area", title = "B3 - standards") +
   theme(panel.grid.minor = element_line(colour = "ivory2"))
-
 # B4
 
 ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
@@ -398,17 +397,15 @@ ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
   geom_smooth( method = "lm") + 
   theme(plot.subtitle = element_text(vjust = 1), 
         plot.caption = element_text(vjust = 1), 
-        axis.line = element_line(colour = "brown2", 
-                                 size = 1.1), panel.grid.major = element_line(linetype = "dashed"), 
+        axis.line = element_line(colour = "gray26", 
+                                 size = 0.5), panel.grid.major = element_line(linetype = "dashed"), 
         panel.grid.minor = element_line(colour = "khaki2"), 
         axis.title = element_text(size = 13), 
         axis.text = element_text(size = 13, colour = "gray19"), 
         plot.title = element_text(size = 14), 
-        panel.background = element_rect(fill = "aliceblue")) +
-  labs(x = "log conc in (mgmL)", y = "log of area") +
-  theme(panel.grid.minor = element_line(colour = "ivory2")) + theme(panel.grid.major = element_line(colour = "gray53"), 
-    panel.grid.minor = element_line(colour = NA), 
-    panel.background = element_rect(fill = "antiquewhite"))
+        panel.background = element_rect(fill = "lemonchiffon")) +
+  labs(x = "log conc in (mgmL)", y = "log of area", title = "B4 - standards") +
+  theme(panel.grid.minor = element_line(colour = "ivory2"))
 
 # make a table of all the standards w kable function __
 
