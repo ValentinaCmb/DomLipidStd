@@ -335,7 +335,7 @@ sample.values.b4
 # print the table so that it can be exported
 # !!! TO DO: make this for each Batch
 
-write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
+#write_csv(sample.values, path = "Data/Table_ConcAllStandards.csv")
 
 
 # __ Plot of the samples based on the concentrations and no longer on the area  ____
@@ -410,6 +410,8 @@ B4 <- ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
         panel.background = element_rect(fill = "lemonchiffon")) +
   labs(x = "log conc in (mgmL)", y = "log of area", title = "B4 - standards") +
   theme(panel.grid.minor = element_line(colour = "ivory2"))
+
+plot.grid01 <- plot_grid(B1, B2, B3, B4, labels = c('B1', 'B2', 'B3','B4'))
 
 # make a table of all the standards w kable function __
 
