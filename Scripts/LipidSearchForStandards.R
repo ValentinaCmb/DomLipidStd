@@ -9,6 +9,9 @@ library(RColorBrewer)
 library(modelr)
 library(kableExtra)
 library(ggThemeAssist)
+library("cowplot")
+
+
 
 # Get working drectory to confirm the right location
 getwd()
@@ -174,6 +177,7 @@ p3 <-  p1 %>%
 p3 <- p3 %>% 
   mutate(log.conc = log10(Conc))
   
+write_csv(p3, path ="Data/p3.csv")
 
 
 ##%######################################################%##
@@ -355,7 +359,7 @@ B1 <- ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area))) +
 
 # B2
 
-ggplot(sample.values.b2, aes(log10(conc_mgmL), log10(area))) +
+B2 <- ggplot(sample.values.b2, aes(log10(conc_mgmL), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
@@ -374,7 +378,7 @@ ggplot(sample.values.b2, aes(log10(conc_mgmL), log10(area))) +
 # B3
 
 
-ggplot(sample.values.b3, aes(log10(conc_mgmL), log10(area))) +
+B3 <- ggplot(sample.values.b3, aes(log10(conc_mgmL), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
@@ -391,7 +395,7 @@ ggplot(sample.values.b3, aes(log10(conc_mgmL), log10(area))) +
   theme(panel.grid.minor = element_line(colour = "ivory2"))
 # B4
 
-ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
+B4 <- ggplot(sample.values.b4, aes(log10(conc_mgmL), log10(area))) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
