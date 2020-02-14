@@ -89,9 +89,9 @@ LS_to_CD_list <- function(df){
 LSdata01 <- LS_to_CD_list(LSdata)
 write_csv(LSdata01, path = "Data/Table_CD28Nov.csv")
 
-# this below is not needed 
-T01 <- LSdata01 %>% 
-      select(Name, LSFormula, RT, MainIon, `Calc Mass`, Class, FA, `FA Group Key`) %>% 
+# this below is not needed
+T01 <- LSdata01 %>%
+      select(Name, LSFormula, RT, MainIon, `Calc Mass`, Class, FA, `FA Group Key`) %>%
       filter(Class %in% c("DG", "FA", "PE", "LPC", "LPE", "LPI", "LPS", "PA", "PC", "PG", "PI", "PS", "TG"))
 
 ############################################################
@@ -220,8 +220,8 @@ p3 <- p3 %>%
 
 # Filter standards for Batch 01
 stdlm.b1 <- p3 %>%  
-  filter(Batch == "B1") %>% 
-  group_by(Class) %>% 
+  #filter(Batch == "B1") %>% 
+  group_by(Class, Batch) %>% 
   do(mod= lm(log10(area) ~ log10(Conc), data = .)) %>% 
   mutate(slope = summary(mod)$coeff[2],
          intercept = coef(mod)[1],
@@ -295,7 +295,7 @@ standards
 
 # Batch 01
 sample.values.b1 <-  p3 %>% 
-  filter(Batch =="B1") %>% 
+#  filter(Batch =="B1") %>% ###remove the # to get just b1 values
   left_join(stdlm.b1) %>% 
   mutate(conc_mgmL = exp((log10(area) - intercept)/ slope))  
  
@@ -340,7 +340,7 @@ sample.values.b4
 
 # __ Plot of the samples based on the concentrations and no longer on the area  ____
 # B1
-B1 <- ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area))) +
+B1 <- ggplot(sample.values.b1, aes(log10(conc_mgmL), log10(area), colour = Batch)) +
   geom_point() +
   facet_wrap(~Class, scales ="free_y") +
   geom_smooth( method = "lm") + 
@@ -415,7 +415,7 @@ plot.grid01 <- plot_grid(B1, B2, B3, B4, labels = c('B1', 'B2', 'B3','B4'))
 
 # make a table of all the standards w kable function __
 
-allStandards <- sample.values %>% 
+allStandards <- sample.values.b1 %>% 
   kable() %>% 
   kable_styling()
 
@@ -434,7 +434,7 @@ allStandards
 #                                                          #
 ##%######################################################%##
 
-B1 <- sample.values %>% 
+B1 <- sample.values.b1 %>% 
   filter(Batch == "B1")
 
 write_csv(B1, path = "Data/Batch01Standards.csv")
