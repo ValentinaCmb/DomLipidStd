@@ -2,6 +2,9 @@
 install.packages("ggThemeAssist")
 install.packages("tidyverse")
 update.packages(ask= FALSE)
+
+# install them only once
+
 library("addinslist")
 library(tidyverse)
 library(readr)
